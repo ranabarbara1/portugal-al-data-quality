@@ -1,6 +1,6 @@
 rule,dimension,description,status,failed_records,failed_pct
 C01,Completeness,Postal code missing,defect,565,0.5
-C02,Completeness,Establishment name missing,defect,8,0.01
+C02,Completeness,Establishment name missing or placeholder (e.g. 'N/A'),defect,11,0.01
 V01,Validity,Postal code not in NNNN-NNN format,defect,7,0.01
 V02,Validity,Modality outside the official list,defect,0,0.0
 V03,Validity,Geocoding reliability outside the domain (e.g. accent variant 'Fiável'),defect,585,0.52

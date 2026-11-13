@@ -23,7 +23,7 @@ Municipalities and the tourism authority use the RNAL to plan inspections, study
 | 7 | 61 establishments sit in a **different municipality from the rest of their postal code**. | 61 |
 | 8 | 565 records have **no postal code**; 7 have malformed ones (`4400617`, `330`, a code repeated four times in one field). | 572 |
 
-Excluding the coordinate-text format rule, **1,689 records (1.5%) have at least one confirmed defect**.
+Excluding the coordinate-text format rule, **1,692 records (1.5%) have at least one confirmed defect**.
 
 **A finding about the data model:** the parish code (`DTMNFR`) matches the parish where the coordinates fall in 100% of the records, checked against the official boundaries (CAOP 2025). That means the parish was most likely **derived from the coordinates** rather than declared, so it cannot be used to validate them. The postal code is an independent field, and rule K02 uses it for that cross-check instead.
 
@@ -34,7 +34,7 @@ Excluding the coordinate-text format rule, **1,689 records (1.5%) have at least 
 | Code | Dimension | Rule | Status |
 |---|---|---|---|
 | C01 | Completeness | Postal code missing | Defect |
-| C02 | Completeness | Establishment name missing | Defect |
+| C02 | Completeness | Establishment name missing or placeholder (`N/A`, `-`) | Defect |
 | V01 | Validity | Postal code not in `NNNN-NNN` format | Defect |
 | V02 | Validity | Modality outside the official list | Defect |
 | V03 | Validity | Geocoding reliability outside the domain | Defect |
@@ -52,13 +52,23 @@ Excluding the coordinate-text format rule, **1,689 records (1.5%) have at least 
 
 **Why some rules are "confirm with data owner":** 45% of the establishments have an opening date earlier than their registration date (K03). That is probably legitimate, since many establishments existed before the registration regime, but only the data owner can confirm it. Flagging it as an error without that conversation would be wrong. The same applies to large capacities (a hostel for 310 guests may be real) and to possible duplicates (several units in the same building may share a name).
 
+## Python and SQL cross-validation
+
+The rules are implemented twice, in Python (pandas) and in PostgreSQL/PostGIS, and the two scorecards were compared on the same extract loaded into a local PostgreSQL 17 + PostGIS 3.6 database. **All 16 rules returned identical counts**, after one fix that the comparison itself exposed:
+
+- The first run disagreed on C02 (missing name): Python found 8, SQL found 0.
+- The 8 records have the literal name `N/A`. **pandas silently converts the string "N/A" into a missing value by default**, while PostgreSQL keeps it as text.
+- The fix makes both sides explicit: pandas now reads raw values (`keep_default_na=False`), and C02 treats placeholders (`N/A`, `-`, `null`...) as missing in both implementations. That also caught 3 names filled with `-`. Final count: 11 in both.
+
 ## Project structure
 
 ```text
 src/rules.py              16 rules, each returning the records that fail
 src/run_quality.py        runs the rules, writes the scorecard, per-record failures and figures
 tests/test_rules.py       unit tests on synthetic records (pytest)
-sql/checks_postgresql.sql the same rules written for PostgreSQL/PostGIS
+sql/load_rnal_postgresql.sql   loads the CSV into PostgreSQL (all columns as text)
+sql/checks_postgresql.sql      the same rules in PostgreSQL/PostGIS, one query per rule (failing records)
+sql/scorecard_postgresql.sql   one query with the count of every rule, to compare with Python
 results/                  scorecard.csv, failures_by_record.csv, by_district.csv
 figures/                  scorecard and geocoding charts
 ```
@@ -77,7 +87,7 @@ python src/run_quality.py path/to/al.csv --reference-date 2026-11-13
 pytest
 ```
 
-The SQL file documents how the rules translate to a database. The Python pipeline is the reference implementation, and it is the one covered by the tests.
+**SQL version** (PostgreSQL 17+ with PostGIS): run `sql/load_rnal_postgresql.sql` with psql from the folder that contains the CSV, then `sql/scorecard_postgresql.sql`. The counts should match `results/scorecard.csv`.
 
 ## Data
 
@@ -88,7 +98,7 @@ The SQL file documents how the rules translate to a database. The Python pipelin
 
 - Reverse-geocode the postal code against the official postal-code polygons (not openly available) to replace the majority-based rule K02.
 - Track the scorecard over successive extracts to see whether issues are being fixed or accumulating.
-- Load the register into PostgreSQL/PostGIS and run `sql/checks_postgresql.sql` as scheduled checks.
+- Schedule the SQL checks to run on every new extract and alert when a rule's failure rate jumps.
 
 ## Stack
 

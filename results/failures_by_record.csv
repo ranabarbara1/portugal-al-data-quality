@@ -4813,7 +4813,7 @@ NrRNAL,Concelho,Distrito,failed_rules
 11131,Cabeceiras de Basto,Braga,A02
 11141,Odemira,Beja,A02
 11142,Lagoa,Faro,"K03,A02"
-11143,Loulé,Faro,A02
+11143,Loulé,Faro,"C02,A02"
 11144,Albufeira,Faro,"K03,A02"
 11148,Loulé,Faro,A02
 11150,Albufeira,Faro,A02
@@ -6213,7 +6213,7 @@ NrRNAL,Concelho,Distrito,failed_rules
 14469,Portimão,Faro,A02
 14472,Lisboa,Lisboa,K03
 14473,Portimão,Faro,A02
-14474,Albufeira,Faro,A02
+14474,Albufeira,Faro,"C02,A02"
 14478,Loulé,Faro,"K03,A02"
 14480,Silves,Faro,A02
 14482,Albufeira,Faro,"K03,A02"
@@ -7050,7 +7050,7 @@ NrRNAL,Concelho,Distrito,failed_rules
 16308,Lagos,Faro,A02
 16309,Lagos,Faro,A02
 16314,Lisboa,Lisboa,K03
-16317,Lisboa,Lisboa,K03
+16317,Lisboa,Lisboa,"C02,K03"
 16319,Lisboa,Lisboa,K03
 16323,Lagoa,Faro,A02
 16327,Lagos,Faro,A02

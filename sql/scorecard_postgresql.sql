@@ -15,7 +15,7 @@ WITH base AS (
 ),
 dup AS (
     SELECT nrrnal,
-           NULLIF(BTRIM(denominacao), '') IS NULL AS name_missing,
+           LOWER(BTRIM(COALESCE(denominacao, ''))) IN ('', 'n/a', 'na', 'null', 'none', '-') AS name_missing,
            COUNT(*) OVER (
                PARTITION BY
                    LOWER(BTRIM(REGEXP_REPLACE(COALESCE(denominacao, ''), '\s+', ' ', 'g')) COLLATE pg_c_utf8),
@@ -49,7 +49,7 @@ capacity_stats AS (
     GROUP BY b.modalidade, s.median
 )
 SELECT 'C01' AS rule, COUNT(*) FILTER (WHERE cp IS NULL) AS failed FROM base
-UNION ALL SELECT 'C02', COUNT(*) FILTER (WHERE NULLIF(BTRIM(denominacao), '') IS NULL) FROM base
+UNION ALL SELECT 'C02', COUNT(*) FILTER (WHERE LOWER(BTRIM(COALESCE(denominacao, ''))) IN ('', 'n/a', 'na', 'null', 'none', '-')) FROM base
 UNION ALL SELECT 'V01', COUNT(*) FILTER (WHERE cp IS NOT NULL AND cp !~ '^\d{4}-\d{3}$') FROM base
 UNION ALL SELECT 'V02', COUNT(*) FILTER (WHERE modalidade NOT IN ('Apartamento', 'Moradia', 'Quartos',
                                         'EstabelecimentoHospedagem', 'EstabelecimentoHospedagemHostel')) FROM base

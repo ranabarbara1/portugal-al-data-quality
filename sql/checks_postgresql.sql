@@ -1,8 +1,8 @@
 -- PostgreSQL / PostGIS version of the data quality rules in src/rules.py.
 --
--- The Python pipeline is the reference implementation (it is the one that runs and
--- is tested in this repository). These queries show how the same rules would run
--- inside a database, assuming the CSV was loaded as text columns into
+-- One query per rule, returning the failing records, for investigation.
+-- The counts were validated against the Python pipeline with scorecard_postgresql.sql,
+-- which uses the same logic. Expects the table created by load_rnal_postgresql.sql:
 -- rnal(x, y, objectid, nrrnal, denominacao, dataregisto, dataaberturapublico,
 --      modalidade, nrutentes, endereco, codigopostal, localidade, latlong,
 --      fiabilidadegeo, dtmnfr, freguesia, concelho, distrito, ...).
@@ -14,6 +14,10 @@ SET TIME ZONE 'UTC';  -- the CSV timestamps are UTC; date comparisons must not s
 -- C01  Postal code missing
 SELECT nrrnal FROM rnal
 WHERE NULLIF(TRIM(codigopostal), '') IS NULL;
+
+-- C02  Establishment name missing or filled with a placeholder
+SELECT nrrnal, denominacao FROM rnal
+WHERE LOWER(BTRIM(COALESCE(denominacao, ''))) IN ('', 'n/a', 'na', 'null', 'none', '-');
 
 -- V01  Postal code not in NNNN-NNN format
 SELECT nrrnal, codigopostal FROM rnal
@@ -59,7 +63,7 @@ FROM (
                             modalidade
            ) AS copies
     FROM rnal
-    WHERE NULLIF(TRIM(denominacao), '') IS NOT NULL
+    WHERE LOWER(BTRIM(COALESCE(denominacao, ''))) NOT IN ('', 'n/a', 'na', 'null', 'none', '-')
 ) t
 WHERE copies > 1;
 

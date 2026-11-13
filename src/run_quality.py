@@ -25,7 +25,9 @@ FIGURES = ROOT / "figures"
 
 
 def load_register(path):
-    return pd.read_csv(path, dtype=str, encoding="utf-8-sig")
+    # keep_default_na=False: read raw values. By default pandas silently turns strings
+    # such as "N/A" or "NULL" into missing values, which hides them from the audit.
+    return pd.read_csv(path, dtype=str, encoding="utf-8-sig", keep_default_na=False)
 
 
 def run(register, reference_date):

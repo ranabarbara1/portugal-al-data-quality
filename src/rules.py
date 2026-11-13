@@ -85,8 +85,12 @@ def invalid_postal_code(df):
     return present & ~df["CodigoPostal"].str.strip().str.fullmatch(POSTAL_CODE)
 
 
+PLACEHOLDERS = {"", "n/a", "na", "null", "none", "-"}
+
+
 def missing_name(df):
-    return df["Denominacao"].isna() | (df["Denominacao"].str.strip() == "")
+    """Name missing or filled with a placeholder such as 'N/A'."""
+    return df["Denominacao"].fillna("").str.strip().str.lower().isin(PLACEHOLDERS)
 
 
 def invalid_modality(df):
@@ -175,7 +179,7 @@ def unreliable_geocoding(df):
 def build_rules(reference_date):
     return [
         Rule("C01", "Completeness", "Postal code missing", missing_postal_code),
-        Rule("C02", "Completeness", "Establishment name missing", missing_name),
+        Rule("C02", "Completeness", "Establishment name missing or placeholder (e.g. 'N/A')", missing_name),
         Rule("V01", "Validity", "Postal code not in NNNN-NNN format", invalid_postal_code),
         Rule("V02", "Validity", "Modality outside the official list", invalid_modality),
         Rule("V03", "Validity", "Geocoding reliability outside the domain (e.g. accent variant 'Fiável')", invalid_geo_reliability),

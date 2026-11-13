@@ -53,6 +53,11 @@ def test_invalid_postal_code(value, expected):
     assert bool(rules.invalid_postal_code(frame(record(CodigoPostal=value))).iloc[0]) == expected
 
 
+@pytest.mark.parametrize("name", ["", "  ", "N/A", "null", "-"])
+def test_missing_or_placeholder_name(name):
+    assert rules.missing_name(frame(record(Denominacao=name))).iloc[0]
+
+
 def test_missing_postal_code():
     assert rules.missing_postal_code(frame(record(CodigoPostal=None))).iloc[0]
 
