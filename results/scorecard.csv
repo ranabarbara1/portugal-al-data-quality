@@ -1,0 +1,17 @@
+rule,dimension,description,status,failed_records,failed_pct
+C01,Completeness,Postal code missing,defect,565,0.5
+C02,Completeness,Establishment name missing,defect,8,0.01
+V01,Validity,Postal code not in NNNN-NNN format,defect,7,0.01
+V02,Validity,Modality outside the official list,defect,0,0.0
+V03,Validity,Geocoding reliability outside the domain (e.g. accent variant 'Fiável'),defect,585,0.52
+V04,Validity,Capacity (NrUtentes) zero or negative,defect,189,0.17
+V05,Validity,"Placeholder or implausible date (before 1950, e.g. 1900-01-01)",defect,12,0.01
+V06,Validity,Opening date in the future,defect,109,0.1
+V07,Validity,Coordinates text (LatLong) in a non-standard format,defect,42868,38.23
+U01,Uniqueness,Registration number (NrRNAL) duplicated,defect,0,0.0
+U02,Uniqueness,"Same name, address, postal code and modality in more than one record",confirm with data owner,1172,1.05
+K01,Consistency,X/Y and LatLong more than 1 km apart,defect,153,0.14
+K02,Consistency,Located in a different municipality from the rest of its postal code,defect,61,0.05
+K03,Consistency,Opening date before registration date,confirm with data owner,50245,44.81
+A01,Accuracy,Capacity far above the norm for its modality (median + 10 MAD),confirm with data owner,347,0.31
+A02,Accuracy,Geocoding not classified as reliable,confirm with data owner,92647,82.63
