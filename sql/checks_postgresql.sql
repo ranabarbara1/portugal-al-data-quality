@@ -7,6 +7,9 @@
 --      modalidade, nrutentes, endereco, codigopostal, localidade, latlong,
 --      fiabilidadegeo, dtmnfr, freguesia, concelho, distrito, ...).
 -- Each query returns the records that FAIL the rule.
+-- For the count of every rule in a single query, see scorecard_postgresql.sql.
+
+SET TIME ZONE 'UTC';  -- the CSV timestamps are UTC; date comparisons must not shift
 
 -- C01  Postal code missing
 SELECT nrrnal FROM rnal
@@ -49,9 +52,10 @@ SELECT nrrnal
 FROM (
     SELECT nrrnal,
            COUNT(*) OVER (
-               PARTITION BY LOWER(REGEXP_REPLACE(TRIM(denominacao), '\s+', ' ', 'g')),
-                            LOWER(REGEXP_REPLACE(TRIM(endereco), '\s+', ' ', 'g')),
-                            TRIM(codigopostal),
+               -- pg_c_utf8 (PostgreSQL 17+) lowercases accented letters even in a C-locale database
+               PARTITION BY LOWER(BTRIM(REGEXP_REPLACE(denominacao, '\s+', ' ', 'g')) COLLATE pg_c_utf8),
+                            LOWER(BTRIM(REGEXP_REPLACE(COALESCE(endereco, ''), '\s+', ' ', 'g')) COLLATE pg_c_utf8),
+                            BTRIM(COALESCE(codigopostal, '')),
                             modalidade
            ) AS copies
     FROM rnal
